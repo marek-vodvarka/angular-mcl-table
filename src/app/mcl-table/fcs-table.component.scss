@@ -1,0 +1,24 @@
+.items-count-of {
+	font-size: 90%;
+	padding-right: 12px;
+}
+
+table {
+	th {
+		.header-sort-icon {
+			width: 8px;
+			display: inline-block;
+			margin: 0 1px 0 6px;
+		}
+	}
+}
+
+.table-wrap {
+	position: relative;
+	overflow: auto;
+	min-height: 350px;
+}
+.table-container {
+	position: absolute;
+	width: 100%;
+}

@@ -1,0 +1,140 @@
+<div [ngClass]="{ 'table-wrap': withScrollbar }">
+	<div [ngClass]="{ 'table-container': withScrollbar }">
+		<div *ngIf="searchAllowed || heading" fcsRow class="mt-0">
+			<h4>
+				{{ heading }}
+			</h4>
+			<input
+				*ngIf="searchAllowed"
+				[(ngModel)]="mclTableSearchModel"
+				(input)="searchInput(mclTableSearchModel)"
+				type="text"
+				placeholder="Search"
+			/>
+		</div>
+
+		<table
+			*ngIf="data && (headerList || headerData || showHeader == false)"
+			class="table table-hovered table-striped m-t-2"
+			[class.fcs-item]="searchAllowed || heading"
+		>
+			<thead *ngIf="showHeader" class="thead-light">
+				<tr>
+					<th *ngIf="showCheckboxColumn">
+						<input
+							type="checkbox"
+							[ngModel]="allChecked"
+							(change)="checkboxToggle('all', allChecked)"
+							[ngClass]="cbxCustomClass"
+							id="mcl-table-header-cbx"
+							name="mcl_table_header_cbx"
+						/>
+					</th>
+					<ng-template [ngIf]="headerData" [ngIfElse]="headerListTemplate">
+						<ng-template ngFor let-item let-index="index" [ngForOf]="headerData">
+							<th
+								[fcsSortable]="{ item: item, propName: getPropName(item, index) }"
+								(sort)="processData($event, null)"
+								(mouseHover)="toggleSortIcon($event, getPropName(item, index))"
+								[ngClass]="item.class"
+								[ngStyle]="item.style"
+							>
+								<ng-template #sortIconHtml>
+									<span class="header-sort-icon">
+										<fcs-sort-icon
+											[icon]="sortIcons[getPropName(item, index)]?.sortIcon"
+											[style.visibility]="!sortIcons[getPropName(item, index)]?.showIcon ? 'hidden' : 'visible'"
+											[size]="8"
+										></fcs-sort-icon>
+									</span>
+								</ng-template>
+
+								<ng-template [ngIf]="item.alignment == columnAlignments.right"
+									><ng-container *ngTemplateOutlet="sortIconHtml"></ng-container
+								></ng-template>
+								{{ item.name }}
+								<ng-template
+									[ngIf]="
+										item.alignment == undefined ||
+										item.alignment == null ||
+										item.alignment == columnAlignments.left ||
+										item.alignment == columnAlignments.center
+									"
+								>
+									<ng-container *ngTemplateOutlet="sortIconHtml"></ng-container>
+								</ng-template>
+							</th>
+						</ng-template>
+					</ng-template>
+
+					<ng-template #headerListTemplate>
+						<ng-template ngFor let-name let-index="index" [ngForOf]="headerList">
+							<th
+								[fcsSortable]="{ item: null, propName: getPropName(null, index) }"
+								(sort)="processData($event, null)"
+								(mouseHover)="toggleSortIcon($event, getPropName(null, index))"
+							>
+								{{ name }}
+
+								<span class="header-sort-icon">
+									<fcs-sort-icon
+										[icon]="sortIcons[getPropName(null, index)]?.sortIcon"
+										[style.visibility]="!sortIcons[getPropName(null, index)]?.showIcon ? 'hidden' : 'visible'"
+										[size]="8"
+									></fcs-sort-icon>
+								</span>
+							</th>
+						</ng-template>
+					</ng-template>
+				</tr>
+			</thead>
+			<tbody>
+				<ng-template [ngIf]="colsTemplate && processedContext && processedContext.rows" [ngIfElse]="simpleCols">
+					<ng-container *ngTemplateOutlet="colsTemplate; context: processedContext"> </ng-container>
+				</ng-template>
+
+				<ng-template #simpleCols>
+					<tr *ngFor="let row of processedData; let index = index" (click)="rowClickFce(row)">
+						<td *ngIf="showCheckboxColumn">
+							<input
+								type="checkbox"
+								[ngModel]="row.fcs_table_selected"
+								(change)="checkboxToggle(index, row.fcs_table_selected)"
+								[ngClass]="cbxCustomClass"
+								id="mcl-table-header-cbx"
+								name="mcl_table_header_cbx"
+							/>
+						</td>
+						<td *ngFor="let i of getItemPropertiesArray(row)">
+							{{ i }}
+						</td>
+					</tr>
+				</ng-template>
+			</tbody>
+			<tfoot *ngIf="footerTemplate">
+				<ng-container *ngTemplateOutlet="footerTemplate; context: processedContext"> </ng-container>
+			</tfoot>
+		</table>
+
+		<div fcsRow *ngIf="showPageRow">
+			<ngb-pagination
+				*ngIf="showPagination"
+				fxFlex
+				[collectionSize]="dataSize"
+				[page]="currentPage"
+				[pageSize]="pageSize"
+				[maxSize]="3"
+				[boundaryLinks]="false"
+				[rotate]="true"
+				(pageChange)="processData(null, $event)"
+			></ngb-pagination>
+
+			<div fxLayoutAlign="end center" fxFlexAlign="start" *ngIf="allowPageSize && data?.length > 0">
+				<span class="items-count-of"> {{ pageStart }} - {{ pageEnd }} of {{ data?.length || 0 }} items </span>
+				<select [(ngModel)]="pageSize" (change)="processData(null, null)" class="custom-select bg-light" style="width: 100px;">
+					<option *ngFor="let pageSize of pageSizes">{{ pageSize }}</option>
+				</select>
+			</div>
+		</div>
+	</div>
+</div>
